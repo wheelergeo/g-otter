@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/cloudwego/kitex v0.8.0
 	github.com/spf13/cobra v1.8.0
-	github.com/wheelergeo/g-otter/gateway v0.0.0-00010101000000-000000000000
+	github.com/wheelergeo/g-otter-gateway v0.0.1
 )
 
 require (

@@ -2,3 +2,9 @@ url = git@github.com:wheelergeo/g-otter-gateway.git
 [submodule "gateway"]
 	path = gateway
 	url = git@github.com:wheelergeo/g-otter-gateway.git
+[submodule "gen"]
+	path = gen
+	url = git@github.com:wheelergeo/g-otter-gen.git
+[submodule "micro"]
+	path = micro
+	url = git@github.com:wheelergeo/g-otter-micro.git
