@@ -3,14 +3,15 @@
 CURDIR=$(cd $(dirname $0); pwd)
 GATEPATH="${CURDIR}/gateway"
 MICROPATH="${CURDIR}/micro"
-IDLPATH="${CURDIR}/gen/idl"
+GENPATH="${CURDIR}/gen"
+IDLPATH="${GENPATH}/idl"
 TMPPATH="${CURDIR}/wheelergeo/g-otter-gen"
 GATEMODULE="github.com/wheelergeo/g-otter-gateway"
 MICROMODULE="github.com/wheelergeo/g-otter-micro"
 GENMODULE="github.com/wheelergeo/g-otter-gen"
 
 
-while getopts ":gm:" opt
+while getopts ":gm:a:" opt
 do
     case $opt in
         g)
@@ -40,6 +41,30 @@ do
             kitex -module ${MICROMODULE} -service ${MICRO} -use ${GENMODULE} ${IDLPATH}/${MICRO}.thrift
             go mod edit -replace=${GENMODULE}=../../gen
             go mod tidy
+            ;;
+        a)
+            if [ ! -d $GENPATH ]; then
+                echo "Error: gen dir is not existed!"
+                exit 1
+            fi
+            MICRO=$OPTARG
+            MICROMODULE=${MICROMODULE}-${MICRO}
+
+            if [ ! -d ${MICROPATH}/${MICRO} ]; then
+                echo "Error: micro dir is not existed!"
+                exit 1
+            fi
+
+            cd ${MICROPATH}/${MICRO}
+
+            mkdir -p ${TMPPATH}
+            kitex -module ${MICROMODULE} -gen-path ../../wheelergeo/g-otter-gen ${IDLPATH}/${MICRO}.thrift
+
+            if [ -d ${GENPATH}/${MICRO} ]; then
+                rm -rf ${GENPATH}/${MICRO}
+            fi
+            mv ../../wheelergeo/g-otter-gen/${MICRO} ../../gen/${MICRO}
+            rm -rf ../../wheelergeo
             ;;
         ?)
             echo "there is unrecognized parameter."
