@@ -1,0 +1,120 @@
+path: cmd/cmd.go
+update_behavior:
+  type: skip
+body: |-
+  package {{.RealServiceName}}cmd
+
+  import (
+    "context"
+    "net"
+    "sync"
+    "time"
+
+    "github.com/cloudwego/hertz/pkg/common/hlog"
+    "github.com/cloudwego/kitex/pkg/klog"
+    "github.com/cloudwego/kitex/pkg/rpcinfo"
+    {{- if eq .Codec "thrift"}}
+    "github.com/cloudwego/kitex/pkg/transmeta"
+    {{- end }}
+    "github.com/cloudwego/kitex/server"
+    "github.com/kitex-contrib/obs-opentelemetry/provider"
+    "github.com/kitex-contrib/obs-opentelemetry/tracing"
+    "github.com/spf13/cobra"
+    "{{.ImportPath}}/{{ToLower .ServiceName}}"
+    "{{.Module}}/biz/dal"
+    "{{.Module}}/biz/dal/mysql"
+    "{{.Module}}/biz/dal/redis"
+    "{{.Module}}/biz/handler"
+    "{{.Module}}/conf"
+    "github.com/wheelergeo/g-otter-micro-user/pkg/auth"
+    "github.com/wheelergeo/g-otter-micro-user/pkg/logger"
+    "github.com/wheelergeo/g-otter-micro-user/pkg/token"
+  )
+
+  var once sync.Once
+  var c *cobra.Command
+
+  func Command() *cobra.Command {
+    once.Do(func() {
+      c = &cobra.Command{
+        Use: "{{.RealServiceName}}",
+        Short: "start {{.RealServiceName}} micro server",
+        Run: func(cmd *cobra.Command, args []string) {
+          dal.Init()
+          auth.NewServer(
+            conf.GetConf().Casbin.ModelName,
+            mysql.DB,
+            conf.GetConf().Casbin.PolicyTable,
+            conf.GetConf().Casbin.PolicyRedis,
+          )
+          token.Init(
+            redis.RedisClient,
+            conf.GetConf().Paseto.CacheKey,
+            nil,
+          )
+          logger.InitKlogWithLogrus(logger.Config{
+            Mode: logger.StdOut,
+            Format: logger.Text,
+            Level: hlog.Level(conf.LogLevel()),
+            FileCfg: logger.FileConfig{
+              FileName: conf.GetConf().Kite.LogFileName,
+              MaxSize: conf.GetConf().Kite.LogMaxSize,
+              MaxBackups: conf.GetConf().Kite.LogMaxBackups,
+              MaxAge: conf.GetConf().Kite.LogMaxAge,
+              FlushInterval: time.Minute,
+            },
+          })
+
+          k := microService()
+
+          klog.Infof("[%s] Server start", conf.GetEnv())
+          err := k.Run()
+          if err != nil {
+            klog.Error(err.Error())
+          }
+        },
+      }
+    })
+
+    return c
+  }
+
+  func microService() (k server.Server) {
+    // address
+    addr, err := net.ResolveTCPAddr("tcp", conf.GetConf().Kitex.Address)
+    if err != nil {
+      panic(err)
+    }
+
+    // rpc info
+    rpcinfo := rpcinfo.EndpointBasicInfo{
+      ServiceName: conf.GetConf().Kitex.Service,
+    }
+
+    opts := []server.Option{
+      server.WithServiceAddr(addr),
+      server.WithServerBasicInfo(&rpcinfo),
+      {{- if eq .Codec "thrift"}}
+      // thrift meta handler
+      server.WithMetaHandler(transmeta.ServerTTHeaderHandler)),
+      {{- end}}
+    }
+
+    // otel
+    if conf.GetConf().Kitex.EnableOtel &&
+      conf.GetConf().Otel.Endpoint != "" {
+      p := provider.NewOpenTelemetryProvider(
+        provider.WithServiceName(conf.GetConf().Kitex.Service),
+        provider.WithExportEndpoint(conf.GetConf().Otel.Endpoint),
+        provider.WithInsecure(),
+      )
+
+      opts = append(opts, server.WithSuite(tracing.NewServerSuite()))
+      server.RegisterShutdownHook(func() {
+        p.Shutdown(context.Backgroud())
+      })
+    }
+
+    k = {{ToLower .ServiceName}}.NewServer(new(handler.{{.ServiceName}}Impl), opts...)
+    return
+  }

@@ -1,0 +1,17 @@
+path: main.go
+update_behavior:
+  type: skip
+body: |-
+  package main
+
+  import (
+    "github.com/cloudwego/kitex/pkg/klog"
+    {{.RealServiceName}}cmd "{{.Module}}/cmd"
+  )
+
+  func main() {
+    err := {{.RealServiceName}}cmd.Command().Execute()
+    if err != nil {
+      klog.Fatal(err)
+    }
+  }

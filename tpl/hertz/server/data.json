@@ -1,0 +1,7 @@
+{
+    "*": {
+        "GoModule": "github.com/wheelergeo/g-otter-gateway",
+        "ServiceName": "gateway",
+        "UseApacheThrift": true
+    }
+}

@@ -1,0 +1,9 @@
+path: script/bootstrap.sh
+update_behavior:
+  type: skip
+body: |-
+  #! /usr/bin/env bash
+  CURDIR=$(cd $(dirname $0); pwd)
+  BinaryName={{.RealServiceName}}
+  echo "$CURDIR/bin/$BinaryName"
+  $CURDIR/bin/$BinaryName $BinaryName
