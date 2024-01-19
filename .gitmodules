@@ -8,3 +8,7 @@ url = git@github.com:wheelergeo/g-otter-gateway.git
 [submodule "micro"]
 	path = micro
 	url = git@github.com:wheelergeo/g-otter-micro.git
+[submodule "pkg"]
+	path = pkg
+	url = git@github.com:wheelergeo/g-otter-pkg.git
+	branch = master

@@ -11,16 +11,31 @@ struct BaseResp {
     2: string Message
 }
 
-struct LoginReq{
+struct RpcWebLoginReq{
     1:required string PhoneNum
     2:required string Password
+    3:required string Ip
+    4:required string Location
+    5:required string Browser
+    6:required string Os
 }
 
-struct LoginResp{
-    1: string Token
-    2: BaseResp Status
+struct RpcWebLoginResp{
+    1: BaseResp Status
+    2: string Token
+}
+
+struct RpcUpdateUserOnlineReq{
+	1: required string Token
+	2: required string TokenExpiredAt
+	3: required string LoginAt
+}
+
+struct RpcUpdateUserOnlineResp{
+    1: BaseResp Status
 }
 
 service UserService{
-    LoginResp Login(1:required LoginReq req)
+    RpcWebLoginResp RpcWebLogin(1:required RpcWebLoginReq req)
+	RpcUpdateUserOnlineResp RpcUpdateUserOnline(1:required RpcUpdateUserOnlineReq req)
 }

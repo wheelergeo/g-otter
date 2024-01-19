@@ -26,9 +26,9 @@ body: |-
     "{{.Module}}/biz/dal/redis"
     "{{.Module}}/biz/handler"
     "{{.Module}}/conf"
-    "github.com/wheelergeo/g-otter-micro-user/pkg/auth"
-    "github.com/wheelergeo/g-otter-micro-user/pkg/logger"
-    "github.com/wheelergeo/g-otter-micro-user/pkg/token"
+    "github.com/wheelergeo/g-otter-pkg/auth"
+    "github.com/wheelergeo/g-otter-pkg/logger"
+    "github.com/wheelergeo/g-otter-pkg/token"
   )
 
   var once sync.Once
@@ -55,7 +55,7 @@ body: |-
           logger.InitKlogWithLogrus(logger.Config{
             Mode: logger.StdOut,
             Format: logger.Text,
-            Level: hlog.Level(conf.LogLevel()),
+            Level: logger.Level(conf.LogLevel()),
             FileCfg: logger.FileConfig{
               FileName: conf.GetConf().Kite.LogFileName,
               MaxSize: conf.GetConf().Kite.LogMaxSize,

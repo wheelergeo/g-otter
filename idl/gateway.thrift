@@ -22,7 +22,18 @@ struct UserLoginResp {
     2: BaseResp Status
 }
 
+struct UserAdminLoginReq {
+    1: required string PhoneNum (api.body="phoneNum", go.tag="vd:\"phone($)\"");
+    2: required string Password (api.body="password", go.tag="vd:\"mediumPasswd($)\"");
+}
+
+struct UserAdminLoginResp {
+    1: string Token
+    2: BaseResp Status
+}
+
 # service 跟服务挂钩
 service UserService {
-    UserLoginResp UserLogin(1: UserLoginReq request) (api.post="/user/login");
+    UserLoginResp UserLogin(1: UserLoginReq request) (api.post="/login");
+    UserAdminLoginResp UserAdminLogin(1: UserAdminLoginReq request) (api.post="/login/admin");
 }
